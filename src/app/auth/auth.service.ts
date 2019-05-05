@@ -7,11 +7,9 @@ import { User } from '../model/user.model';
 export class AuthService {
 
   constructor(private http: HttpClient) {
-
   }
 
   login(email: string, password: string): Observable<User> {
     return this.http.post<User>('/api/login', { email, password });
   }
-
 }
