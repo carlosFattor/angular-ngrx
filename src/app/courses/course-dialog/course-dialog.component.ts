@@ -4,13 +4,17 @@ import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 import * as moment from 'moment';
 import { Course } from '../model/course';
 import { CoursesService } from '../services/courses.service';
+import { Update } from '@ngrx/entity';
+import { Store } from '@ngrx/store';
+import { AppState } from '../../store/app.reducers';
+import { CourseSaved } from '../store/course.actions';
 
 @Component({
   selector: 'course-dialog',
   templateUrl: './course-dialog.component.html',
   styleUrls: ['./course-dialog.component.css']
 })
-export class CourseDialogComponent implements OnInit {
+export class CourseDialogComponent {
 
   courseId: number;
 
@@ -21,6 +25,7 @@ export class CourseDialogComponent implements OnInit {
     private coursesService: CoursesService,
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<CourseDialogComponent>,
+    private store: Store<AppState>,
     @Inject(MAT_DIALOG_DATA) course: Course) {
 
     this.courseId = course.id;
@@ -34,26 +39,24 @@ export class CourseDialogComponent implements OnInit {
       longDescription: [course.longDescription, Validators.required],
       promo: [course.promo, []]
     });
-
   }
-
-  ngOnInit() {
-
-  }
-
 
   save() {
-
     const changes = this.form.value;
-
     this.coursesService.saveCourse(this.courseId, changes)
       .subscribe(
-        () => this.dialogRef.close()
+        () => {
+          const course: Update<Course> = {
+            id: this.courseId,
+            changes
+          };
+          this.store.dispatch(new CourseSaved({ course }));
+          this.dialogRef.close();
+        }
       );
   }
 
   close() {
     this.dialogRef.close();
   }
-
 }
